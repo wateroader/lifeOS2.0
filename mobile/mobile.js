@@ -405,15 +405,19 @@ function _showAddSpend(dateStr, existing = null) {
     const subs = cat?.sub || [];
     wrap.innerHTML = '';
     if (!subs.length) { selSub = ''; return; }
-    selSub = selSub && subs.includes(selSub) ? selSub : subs[0];
+    if (selSub && !subs.includes(selSub)) selSub = '';   // clear if not valid for this category
+    const pick = (val, elBtn) => {
+      selSub = val;
+      wrap.querySelectorAll('.mob-sub-btn').forEach(b => b.classList.remove('active'));
+      elBtn.classList.add('active');
+    };
+    const noneBtn = el('button', 'mob-sub-btn' + (selSub === '' ? ' active' : ''), 'None');
+    noneBtn.addEventListener('click', () => pick('', noneBtn));
+    wrap.appendChild(noneBtn);
     subs.forEach(s => {
-      const btn = el('button', 'mob-sub-btn' + (s === selSub ? ' active' : ''), s);
-      btn.addEventListener('click', () => {
-        selSub = s;
-        wrap.querySelectorAll('.mob-sub-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-      wrap.appendChild(btn);
+      const b = el('button', 'mob-sub-btn' + (s === selSub ? ' active' : ''), s);
+      b.addEventListener('click', () => pick(s, b));
+      wrap.appendChild(b);
     });
   }
 
