@@ -466,6 +466,18 @@ function _showAddSpend(dateStr, existing = null) {
   }
 }
 
+// Sort events chronologically (morning → night); untimed events first.
+function _sortEventsByTime(events) {
+  return [...events].sort((a, b) => {
+    const ta = a.time ?? a.startTime;
+    const tb = b.time ?? b.startTime;
+    if (!ta && !tb) return 0;
+    if (!ta) return -1;
+    if (!tb) return 1;
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  });
+}
+
 // ── Day detail (events + spend for one date) ─────────────────────────
 function _buildDayDetail(dateStr) {
   const d    = _D();
@@ -478,7 +490,7 @@ function _buildDayDetail(dateStr) {
   frag.appendChild(lbl);
 
   // Events
-  const events = (d.calendar?.events || []).filter(e => e.date === dateStr);
+  const events = _sortEventsByTime((d.calendar?.events || []).filter(e => e.date === dateStr));
   const evSec  = el('div', 'day-section');
   const evHdr  = el('div', 'day-sec-hdr');
   evHdr.appendChild(el('span', 'day-sec-title', 'Events'));
@@ -585,7 +597,7 @@ function _buildWeekView() {
     const hdr  = el('div', 'cal-week-day-hdr');
     hdr.appendChild(el('span', 'cal-week-day-label', dayLabel));
 
-    const dayEvts   = events.filter(e => e.date === ds);
+    const dayEvts   = _sortEventsByTime(events.filter(e => e.date === ds));
     const daySpend  = spend[ds] || [];
     const spTotal   = daySpend.reduce((s, e) => s + (e.amount || 0), 0);
     if (spTotal) hdr.appendChild(el('span', 'cal-week-spend', '¥' + spTotal.toLocaleString()));
