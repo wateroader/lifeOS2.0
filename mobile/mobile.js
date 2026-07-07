@@ -301,6 +301,7 @@ function _showAddEvent(dateStr, existing = null) {
         <span class="mob-time-sep">–</span>
         <input id="ms-ev-time-end" type="time" placeholder="End">
       </div>
+      <input id="ms-ev-link" type="url" placeholder="Meeting link (optional)" autocomplete="off">
       <input id="ms-ev-location" type="text" placeholder="Location (optional)" autocomplete="off">
       <div class="mob-cat-grid" id="ms-ev-cats"></div>
       <div class="mob-sheet-actions">
@@ -315,6 +316,7 @@ function _showAddEvent(dateStr, existing = null) {
   sheet.querySelector('#ms-ev-title').value    = existing?.title ?? '';
   sheet.querySelector('#ms-ev-time').value     = existing?.time ?? existing?.startTime ?? '';
   sheet.querySelector('#ms-ev-time-end').value = existing?.endTime ?? '';
+  sheet.querySelector('#ms-ev-link').value     = existing?.link ?? '';
   sheet.querySelector('#ms-ev-location').value = existing?.location ?? '';
 
   let selCat = existing?.categoryId ?? existing?.category ?? 'personal';
@@ -345,11 +347,13 @@ function _showAddEvent(dateStr, existing = null) {
     if (!title) { sheet.querySelector('#ms-ev-title').focus(); return; }
     const time     = sheet.querySelector('#ms-ev-time').value;
     const endTime  = sheet.querySelector('#ms-ev-time-end').value;
+    const link     = sheet.querySelector('#ms-ev-link').value.trim();
     const location = sheet.querySelector('#ms-ev-location').value.trim();
     const ev = { ...(existing || {}), id: existing?.id ?? _uid(), date: existing?.date ?? dateStr, title, category: selCat, categoryId: selCat };
     delete ev.startTime;                 // drop legacy field
     if (time) ev.time = time; else delete ev.time;
     if (endTime) ev.endTime = endTime; else delete ev.endTime;
+    if (link) ev.link = link; else delete ev.link;
     if (location) ev.location = location; else delete ev.location;
     const events = existing
       ? (d.calendar?.events || []).map(e => e.id === existing.id ? ev : e)
@@ -509,6 +513,18 @@ function _buildDayDetail(dateStr) {
       info.appendChild(el('span', 'day-item-title', ev.title));
       const evTime = ev.time ?? ev.startTime;
       if (evTime) info.appendChild(el('span', 'day-item-meta', ev.endTime ? `${evTime}–${ev.endTime}` : evTime));
+      if (ev.link) {
+        const linkEl = document.createElement('a');
+        linkEl.className = 'day-item-link';
+        linkEl.href = ev.link;
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
+        let linkLabel = 'Open link';
+        try { linkLabel = new URL(ev.link).hostname.replace(/^www\./, ''); } catch {}
+        linkEl.innerHTML = `<span class="material-symbols-outlined">videocam</span>${linkLabel}`;
+        linkEl.addEventListener('click', e => e.stopPropagation()); // tap link = open, not edit
+        info.appendChild(linkEl);
+      }
       if (ev.location) {
         const loc = document.createElement('a');
         loc.className = 'day-item-location';

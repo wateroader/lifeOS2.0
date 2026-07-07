@@ -258,6 +258,17 @@ html, body {
   line-height: 1.3;
 }
 .day-item-location .material-symbols-outlined { font-size: 12px; flex-shrink: 0; }
+
+.day-item-link {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-xs);
+  color: var(--accent);
+  text-decoration: none;
+  line-height: 1.3;
+}
+.day-item-link .material-symbols-outlined { font-size: 12px; flex-shrink: 0; }
 .day-item-amt { font-size: var(--fs-sm); font-weight: 600; color: var(--text); flex-shrink: 0; }
 
 /* ── Cycle status bar ────────────────────────────────────────────── */
