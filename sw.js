@@ -1,4 +1,4 @@
-const CACHE = 'seratus-v38';
+const CACHE = 'seratus-v40';
 
 const SHELL = [
   '/app.html',

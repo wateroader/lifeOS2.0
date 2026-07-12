@@ -861,11 +861,19 @@ function openEventView(date, evtId) {
   editBtn.className = 'cal-ev-view-edit-btn';
   editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>Edit';
   editBtn.addEventListener('click', () => openEditForm(viewDate, evtId));
+  const dupBtn = document.createElement('button');
+  dupBtn.className = 'cal-ev-view-edit-btn';
+  dupBtn.innerHTML = '<span class="material-symbols-outlined">content_copy</span>Duplicate';
+  dupBtn.addEventListener('click', () => {
+    const copy = { ...evt, id: uid(), createdAt: undefined };
+    saveEvent(copy);
+    openEventView(viewDate, copy.id);   // open the new copy so it's obvious it worked
+  });
   const delBtn = document.createElement('button');
   delBtn.className = 'cal-ev-view-del-btn';
   delBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>Delete';
   delBtn.addEventListener('click', () => { removeEvent(evtId); openModal(date); });
-  footer.append(editBtn, delBtn);
+  footer.append(editBtn, dupBtn, delBtn);
   card.appendChild(footer);
 
   _modal.appendChild(card);

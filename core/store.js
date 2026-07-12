@@ -117,7 +117,7 @@ async function pushToSupabase(data) {
     .map(k => sb.from('modules').upsert({ module: k, data: data[k], updated_at: new Date().toISOString() }));
 
   const eventRows = (data.calendar?.events ?? []).map(e => ({
-    id: e.id, date: e.date, title: e.title ?? '', category: e.category ?? 'personal', data: e,
+    id: e.id, date: e.date ?? '1970-01-01', title: e.title ?? '', category: e.category ?? 'personal', data: e,
   }));
 
   const spendRows = [];
@@ -159,7 +159,7 @@ async function writeCalendar(newCal, prevCal) {
   if (newCal.events !== undefined) {
     if (newCal.events.length > 0) {
       const rows = newCal.events.map(e => ({
-        id: e.id, date: e.date, title: e.title ?? '', category: e.category ?? 'personal', data: e,
+        id: e.id, date: e.date ?? '1970-01-01', title: e.title ?? '', category: e.category ?? 'personal', data: e,
       }));
       writes.push(sb.from('calendar_events').upsert(rows));
     }
