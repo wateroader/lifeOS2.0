@@ -78,7 +78,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   /* clear the floating nav so the last items aren't hidden behind it */
-  padding-bottom: calc(env(safe-area-inset-bottom) + 92px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
 }
 
 .tab-content {
@@ -435,7 +435,7 @@ html, body {
   position: absolute;
   left: var(--s4);
   right: var(--s4);
-  bottom: calc(env(safe-area-inset-bottom) + var(--s3));
+  bottom: calc(env(safe-area-inset-bottom) + var(--s1));
   z-index: 50;
   display: flex;
   gap: var(--s1);

@@ -242,13 +242,22 @@ export function save(partial) {
   Object.assign(_data, partial);
   _subs.forEach(fn => fn(_data));
 
-  // Write to Supabase if authenticated, otherwise localStorage
+  // Always keep a local copy first. On a phone the network drops constantly, and
+  // a failed Supabase write used to leave the change in memory only — so it
+  // silently vanished on refresh. This guarantees the edit survives either way.
+  try { localStorage.setItem('lifeOS_data', JSON.stringify(_data)); }
+  catch (e) { console.error('[store] localStorage write failed', e); }
+
+  // Then push to Supabase if signed in, retrying once on a transient failure.
   sb.auth.getSession().then(({ data: { session } }) => {
-    if (session) {
-      writePartial(partial, prevCalendar).catch(e => console.error('[store] write failed', e));
-    } else {
-      try { localStorage.setItem('lifeOS_data', JSON.stringify(_data)); } catch (e) { console.error('[store] localStorage write failed', e); }
-    }
+    if (!session) return;
+    writePartial(partial, prevCalendar).catch(err => {
+      console.warn('[store] Supabase write failed, retrying in 2s', err);
+      setTimeout(() => {
+        writePartial(partial, prevCalendar).catch(err2 =>
+          console.error('[store] Supabase write failed again (local copy kept)', err2));
+      }, 2000);
+    });
   });
 }
 
