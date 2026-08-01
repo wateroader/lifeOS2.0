@@ -1,4 +1,4 @@
-const CACHE = 'seratus-v41';
+const CACHE = 'seratus-v42';
 
 const SHELL = [
   '/app.html',
@@ -73,15 +73,19 @@ self.addEventListener('fetch', e => {
   const url = e.request.url;
   if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) return;
 
-  // Network-first for JS and CSS so new code always loads; cache is offline fallback only
+  // Stale-while-revalidate for JS and CSS: serve from cache instantly (fast),
+  // fetch a fresh copy in the background for next time. New deploys bump the
+  // CACHE version, so the new service worker re-installs the shell and takes
+  // over — you still get new code, without waiting on the network every load.
   if (url.includes('.js') || url.includes('.css')) {
     e.respondWith(
-      fetch(e.request)
-        .then(resp => {
+      caches.match(e.request).then(cached => {
+        const network = fetch(e.request).then(resp => {
           if (resp.ok) caches.open(CACHE).then(c => c.put(e.request, resp.clone()));
           return resp;
-        })
-        .catch(() => caches.match(e.request))
+        }).catch(() => cached);
+        return cached || network;
+      })
     );
     return;
   }
