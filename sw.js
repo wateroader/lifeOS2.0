@@ -1,4 +1,4 @@
-const CACHE = 'seratus-v42';
+const CACHE = 'seratus-v43';
 
 const SHELL = [
   '/app.html',
@@ -7,6 +7,10 @@ const SHELL = [
   '/mobile/mobile.html',
   '/lib/Sortable.min.js',
   '/style/base.css',
+  '/style/fonts.css',
+  '/fonts/material-symbols.woff2',
+  '/fonts/fraunces.woff2',
+  '/fonts/dmsans.woff2',
   '/style/layout.css',
   '/style/settings.css',
   '/modules/period/period.css',
