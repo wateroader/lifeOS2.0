@@ -95,6 +95,15 @@ function monthlySalary() {
 }
 function takeHome() { return Math.round(monthlySalary() * 0.8); }
 
+// Soft guidance: recommended max % of take-home per category. Categories not
+// listed get no hint (avoids preaching where there's no clear norm).
+const BUDGET_RECO = {
+  bills:         { high: 35 },   // housing + utilities + rent
+  food:          { high: 25 },
+  entertainment: { high: 15 },
+  commute:       { high: 15 },
+};
+
 function saveBudget(catId, amount) {
   const next = { ...budgets() };
   if (amount == null) delete next[catId];
@@ -262,6 +271,20 @@ function makeCatRow(cat, target, spent) {
   const fill = document.createElement('div'); fill.className = 'bud-bar-fill'; fill.style.width = `${pct * 100}%`; fill.style.background = barColor;
   barWrap.appendChild(fill);
   row.append(top, barWrap);
+
+  // Soft take-home % hint (only for categories with a recommended range).
+  const th   = takeHome();
+  const reco = BUDGET_RECO[cat.id];
+  if (th > 0 && reco && target > 0) {
+    const pctOfTh = Math.round((target / th) * 100);
+    const high    = pctOfTh > reco.high;
+    const hint = document.createElement('div');
+    hint.className = 'bud-cat-hint' + (high ? ' high' : '');
+    hint.textContent = high
+      ? `${pctOfTh}% of take-home · a bit high, aim ≤ ${reco.high}%`
+      : `${pctOfTh}% of take-home`;
+    row.appendChild(hint);
+  }
   return row;
 }
 

@@ -105,6 +105,18 @@
 .bud-remove-btn:hover { color: var(--red); }
 .bud-cancel-btn:hover { color: var(--text); }
 
+/* ── Per-category take-home % hint ── */
+.bud-cat-hint {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+.bud-cat-hint.high {
+  color: var(--amber);
+  font-weight: 600;
+}
+
 /* ── Take-home header ── */
 .bud-takehome {
   padding: var(--s3) var(--s4);
