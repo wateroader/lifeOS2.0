@@ -4,6 +4,7 @@ let _container, _data, _onSave;
 let _year, _month;
 let _editingCat  = null;
 let _addingIncome = false;
+let _editingIncome = null;   // income entry being edited, or null
 
 function spendCats() { return _data.settings?.spendCategories ?? []; }
 function budgets()   { return _data.settings?.monthlyBudgets  ?? {}; }
@@ -326,7 +327,10 @@ function renderProjects() {
       const lbl = document.createElement('span'); lbl.className = 'proj-entry-label'; lbl.textContent = e.label || '—';
       const amt = document.createElement('span'); amt.className = 'proj-entry-amt income'; amt.textContent = `+${fmt(e.amount ?? 0)}`;
       const del = document.createElement('button'); del.className = 'proj-entry-del'; del.textContent = '×';
-      del.addEventListener('click', () => { saveProjectIncome(incomeEntries.filter(x => x.id !== e.id)); render(); });
+      del.addEventListener('click', ev => { ev.stopPropagation(); saveProjectIncome(incomeEntries.filter(x => x.id !== e.id)); render(); });
+      row.style.cursor = 'pointer';
+      row.title = 'Click to edit';
+      row.addEventListener('click', () => { _editingIncome = e; _addingIncome = true; render(); });
       row.append(dateEl, lbl, amt, del);
       list.appendChild(row);
     });
@@ -371,32 +375,42 @@ function renderProjects() {
 }
 
 function renderIncomeForm() {
+  const editing = _editingIncome;
   const form = document.createElement('div'); form.className = 'proj-income-form';
 
   const labelInp = document.createElement('input');
   labelInp.className = 'proj-entry-inp'; labelInp.type = 'text';
   labelInp.placeholder = 'e.g. Keychain sales, booth day 1…'; labelInp.autocomplete = 'off';
+  labelInp.value = editing?.label ?? '';
 
   const amtInp = document.createElement('input');
   amtInp.className = 'proj-entry-inp'; amtInp.type = 'number'; amtInp.min = '0'; amtInp.placeholder = '¥0';
+  amtInp.value = editing?.amount ?? '';
 
   const dateInp = document.createElement('input');
   dateInp.className = 'proj-entry-inp'; dateInp.type = 'date';
-  dateInp.value = new Date().toISOString().slice(0, 10);
+  dateInp.value = editing?.date ?? new Date().toISOString().slice(0, 10);
 
   const actions = document.createElement('div'); actions.className = 'proj-form-actions';
 
-  const saveBtn = document.createElement('button'); saveBtn.className = 'proj-save-btn'; saveBtn.textContent = 'Add income';
+  const closeForm = () => { _addingIncome = false; _editingIncome = null; render(); };
+
+  const saveBtn = document.createElement('button'); saveBtn.className = 'proj-save-btn'; saveBtn.textContent = editing ? 'Save' : 'Add income';
   saveBtn.addEventListener('click', () => {
     const amount = parseFloat(amtInp.value);
     if (isNaN(amount) || amount <= 0) { amtInp.focus(); return; }
-    saveProjectIncome([...projectIncome(), { id: uid(), label: labelInp.value.trim() || null, amount, date: dateInp.value || null }]);
-    _addingIncome = false;
-    render();
+    const label = labelInp.value.trim() || null;
+    const date  = dateInp.value || null;
+    if (editing) {
+      saveProjectIncome(projectIncome().map(x => x.id === editing.id ? { ...x, label, amount, date } : x));
+    } else {
+      saveProjectIncome([...projectIncome(), { id: uid(), label, amount, date }]);
+    }
+    closeForm();
   });
 
   const cancelBtn = document.createElement('button'); cancelBtn.className = 'proj-cancel-btn'; cancelBtn.textContent = 'Cancel';
-  cancelBtn.addEventListener('click', () => { _addingIncome = false; render(); });
+  cancelBtn.addEventListener('click', closeForm);
 
   amtInp.addEventListener('keydown', e => { if (e.key === 'Enter') saveBtn.click(); if (e.key === 'Escape') cancelBtn.click(); });
 
