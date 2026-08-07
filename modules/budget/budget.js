@@ -93,7 +93,8 @@ function monthlySalary() {
   }
   return 0;
 }
-function takeHome() { return Math.round(monthlySalary() * 0.8); }
+// The salary entered is already take-home, so use it directly (no gross->net cut).
+function takeHome() { return monthlySalary(); }
 
 // Soft guidance: recommended max % of take-home per category. Categories not
 // listed get no hint (avoids preaching where there's no clear norm).
@@ -176,7 +177,7 @@ function renderBudget() {
     const card = document.createElement('div'); card.className = 'bud-takehome';
     card.innerHTML = `
       <div class="bud-th-main">
-        <span class="bud-th-lbl">Take-home this month <span class="bud-th-note">est. 80%</span></span>
+        <span class="bud-th-lbl">Take-home this month</span>
         <span class="bud-th-amt">${fmt(th)}</span>
       </div>
       <div class="bud-th-sub">
