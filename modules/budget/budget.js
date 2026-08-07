@@ -169,20 +169,28 @@ function renderBudget() {
   const wrap = document.createElement('div');
   wrap.className = 'bud-wrap';
 
-  // Take-home header: your spending ceiling for the month.
+  // Take-home header: your income, what's committed to budgets, and what's left.
   const th = takeHome();
   if (th > 0) {
-    const spentAll = spendCats().reduce((s, c) => s + catSpent(c.id), 0);
-    const left = th - spentAll;
+    const bud         = budgets();
+    const totalBudget = spendCats().reduce((s, c) => s + (bud[c.id] ?? 0), 0);
+    const spentAll    = spendCats().reduce((s, c) => s + catSpent(c.id), 0);
+    const leftOver    = th - totalBudget;   // if you spend every budget in full
+    const leftToSpend = th - spentAll;      // based on what you've actually spent
+
     const card = document.createElement('div'); card.className = 'bud-takehome';
     card.innerHTML = `
       <div class="bud-th-main">
         <span class="bud-th-lbl">Take-home this month</span>
         <span class="bud-th-amt">${fmt(th)}</span>
       </div>
-      <div class="bud-th-sub">
-        <span>Spent ${fmt(spentAll)}</span>
-        <span class="bud-th-left${left < 0 ? ' over' : ''}">${left < 0 ? fmt(left) + ' over' : fmt(left) + ' left to spend'}</span>
+      <div class="bud-th-row">
+        <span class="bud-th-row-lbl">If you spend every budget (${fmt(totalBudget)})</span>
+        <span class="bud-th-left${leftOver < 0 ? ' over' : ''}">${leftOver < 0 ? fmt(leftOver) + ' over' : fmt(leftOver) + ' left'}</span>
+      </div>
+      <div class="bud-th-row">
+        <span class="bud-th-row-lbl">Spent so far (${fmt(spentAll)})</span>
+        <span class="bud-th-left${leftToSpend < 0 ? ' over' : ''}">${leftToSpend < 0 ? fmt(leftToSpend) + ' over' : fmt(leftToSpend) + ' left to spend'}</span>
       </div>`;
     wrap.appendChild(card);
   }
