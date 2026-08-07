@@ -105,6 +105,46 @@
 .bud-remove-btn:hover { color: var(--red); }
 .bud-cancel-btn:hover { color: var(--text); }
 
+/* ── Take-home header ── */
+.bud-takehome {
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--green) 6%, var(--surface));
+  margin-bottom: var(--s4);
+}
+.bud-th-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+.bud-th-lbl { font-size: var(--fs-sm); color: var(--text-2); }
+.bud-th-note {
+  font-size: 10px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-left: 4px;
+}
+.bud-th-amt {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.bud-th-sub {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.bud-th-left { color: var(--green); font-weight: 600; }
+.bud-th-left.over { color: var(--red); }
+
 .bud-total-row {
   display: flex;
   align-items: center;

@@ -80,6 +80,21 @@ function saveProjectIncome(entries) {
 
 function fmt(n) { return '¥' + Math.round(Math.abs(n)).toLocaleString(); }
 
+// Estimated take-home = this month's base salary × 80% (deductions ~20%).
+// Falls back to the most recent month that has a salary set.
+function monthlySalary() {
+  const months = _data.finance?.months ?? {};
+  const key = `${_year}-${String(_month + 1).padStart(2, '0')}`;
+  const cur = months[key]?.income?.find(r => r.id === 'salary')?.amount;
+  if (cur) return cur;
+  for (const k of Object.keys(months).sort().reverse()) {
+    const s = months[k]?.income?.find(r => r.id === 'salary')?.amount;
+    if (s) return s;
+  }
+  return 0;
+}
+function takeHome() { return Math.round(monthlySalary() * 0.8); }
+
 function saveBudget(catId, amount) {
   const next = { ...budgets() };
   if (amount == null) delete next[catId];
@@ -143,6 +158,24 @@ function render() {
 function renderBudget() {
   const wrap = document.createElement('div');
   wrap.className = 'bud-wrap';
+
+  // Take-home header: your spending ceiling for the month.
+  const th = takeHome();
+  if (th > 0) {
+    const spentAll = spendCats().reduce((s, c) => s + catSpent(c.id), 0);
+    const left = th - spentAll;
+    const card = document.createElement('div'); card.className = 'bud-takehome';
+    card.innerHTML = `
+      <div class="bud-th-main">
+        <span class="bud-th-lbl">Take-home this month <span class="bud-th-note">est. 80%</span></span>
+        <span class="bud-th-amt">${fmt(th)}</span>
+      </div>
+      <div class="bud-th-sub">
+        <span>Spent ${fmt(spentAll)}</span>
+        <span class="bud-th-left${left < 0 ? ' over' : ''}">${left < 0 ? fmt(left) + ' over' : fmt(left) + ' left to spend'}</span>
+      </div>`;
+    wrap.appendChild(card);
+  }
 
   const cats       = spendCats();
   const bud        = budgets();
