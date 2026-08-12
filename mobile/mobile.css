@@ -80,7 +80,7 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   /* clear the floating nav so the last items aren't hidden behind it */
-  padding-bottom: calc(env(safe-area-inset-bottom) + 84px);
+  padding-bottom: calc(min(env(safe-area-inset-bottom), 34px) + 84px);
 }
 
 .tab-content {
@@ -436,11 +436,13 @@ html, body {
 /* Floating glass pill, hugging the bottom edge (container is now full-height,
    so it actually reaches the bottom). */
 .bottom-nav {
-  position: absolute;
+  position: fixed;                 /* viewport-anchored, not container-anchored */
   left: 50%;
   transform: translateX(-50%);
   width: calc(min(480px, 100%) - 2 * var(--s4));
-  bottom: calc(env(safe-area-inset-bottom) + var(--s1));
+  /* cap safe-area: some standalone PWAs report a bogus (huge) inset that floated
+     the nav way up. 34px is the real iPhone home-indicator height. */
+  bottom: calc(min(env(safe-area-inset-bottom), 34px) + var(--s1));
   z-index: 50;
   display: flex;
   gap: var(--s1);
