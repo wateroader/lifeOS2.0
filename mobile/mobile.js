@@ -60,6 +60,7 @@ let _calView  = 'day'; // 'day' | 'week'
 let _selDate  = _todayStr();
 let _calMonth = { y: +_selDate.slice(0, 4), m: +_selDate.slice(5, 7) };
 let _finMonth = { y: +_selDate.slice(0, 4), m: +_selDate.slice(5, 7) - 1 }; // m is 0-indexed
+let _finEditLabelId = null; // income row whose name is being edited (null = none)
 let _expandedNote = null;
 
 // ── Finance (income only, mirrors desktop finance.js data model) ──────
@@ -753,13 +754,34 @@ function _buildFinanceTab() {
   sec.appendChild(el('div', 'fin-sec-title', 'Income'));
   rows.forEach((r, i) => {
     const row = el('div', 'fin-row' + (r.isNeg ? ' neg' : ''));
-    row.appendChild(el('span', 'fin-row-label', r.label));
+    const left = el('div', 'fin-row-left');
+
+    if (_finEditLabelId === r.id) {
+      // Editing the name: input + a check to confirm (deliberate, no misclicks).
+      const labelInp = el('input', 'fin-label-inp'); labelInp.value = r.label; labelInp.autocomplete = 'off';
+      const check = el('button', 'fin-row-check'); check.innerHTML = '<span class="material-symbols-outlined">check</span>';
+      const doSave = () => { rows[i].label = labelInp.value.trim() || r.label; _finEditLabelId = null; _setFinIncome(y, m, rows); _render(); };
+      check.addEventListener('click', doSave);
+      labelInp.addEventListener('keydown', e => {
+        if (e.key === 'Enter')  doSave();
+        if (e.key === 'Escape') { _finEditLabelId = null; _render(); }
+      });
+      left.append(labelInp, check);
+      requestAnimationFrame(() => labelInp.focus());
+    } else {
+      const labelSpan = el('span', 'fin-row-label', r.label);
+      const editBtn = el('button', 'fin-row-edit'); editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>';
+      editBtn.addEventListener('click', () => { _finEditLabelId = r.id; _render(); });
+      left.append(labelSpan, editBtn);
+    }
+
     const inp = el('input', 'fin-row-amt');
     inp.type = 'number'; inp.inputMode = 'numeric'; inp.placeholder = '0';
     inp.value = r.amount || '';
     inp.addEventListener('input', () => { rows[i].amount = parseFloat(inp.value) || 0; paintNet(); });
     inp.addEventListener('blur',  () => _setFinIncome(y, m, rows));
-    row.appendChild(inp);
+
+    row.append(left, inp);
     sec.appendChild(row);
   });
   wrap.appendChild(sec);

@@ -432,10 +432,11 @@ html, body {
 /* Floating liquid-glass nav: a translucent rounded pill above the home indicator,
    content scrolls underneath it. */
 .bottom-nav {
-  position: absolute;
-  left: var(--s4);
-  right: var(--s4);
-  bottom: calc(env(safe-area-inset-bottom) + var(--s1));
+  position: fixed;                 /* anchor to the real viewport bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(min(480px, 100%) - 2 * var(--s4));
+  bottom: calc(env(safe-area-inset-bottom) + var(--s2));
   z-index: 50;
   display: flex;
   gap: var(--s1);
@@ -664,8 +665,37 @@ html, body {
   border-bottom: 1px solid var(--border-dim);
 }
 .fin-row:last-child { border-bottom: none; }
+.fin-row-left { display: flex; align-items: center; gap: var(--s2); flex: 1; min-width: 0; }
 .fin-row-label { font-size: var(--fs-sm); color: var(--text); }
 .fin-row.neg .fin-row-label { color: var(--text-2); }
+
+.fin-row-edit {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3);
+  opacity: 0.5;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+}
+.fin-row-edit:active { background: var(--surface-2); }
+.fin-row-edit .material-symbols-outlined { font-size: 16px; }
+
+.fin-label-inp {
+  flex: 1; min-width: 0;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--accent-2);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--s2);
+}
+.fin-row-check {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex-shrink: 0;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+.fin-row-check .material-symbols-outlined { font-size: 18px; }
 .fin-row-amt {
   width: 120px;
   text-align: right;
