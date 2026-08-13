@@ -18,7 +18,10 @@ Always one swipe away. Holds parked (unscheduled) events, countdowns, and free-f
 Year calendar with color-coded flow, predictions, and fertile window. Day logger for flow, mood, and symptoms (full clinical list). Cycles tab with flow donut chart, stats grid (avg, median, longest, shortest), bar chart of recent cycles, and expandable cycle history.
 
 **Finance**
-Monthly income ledger with Japan-specific salary breakdown (salary, transport allowance, social insurance, taxes). Spend totals pulled from calendar by category. Sub-views for Savings, Currency, and Investment (bonds, deposits, NISA).
+Monthly income ledger with Japan-specific salary breakdown (salary, transport allowance, social insurance, taxes). Spend totals pulled from calendar by category. Sub-views for Savings, Currency, Investment (bonds, deposits, NISA), and Budget.
+
+**Budget**
+Per-category monthly budgets with progress bars. A take-home header shows your monthly income, what's left if you spend every budget (your free money), and what's left to spend against actual spending. Soft, non-nagging hints flag categories that eat too much of your take-home (e.g. housing over ~35%). A Project tracker sums project expenses from the calendar against manually logged, editable income.
 
 **Drawings**
 Daily scratch canvas in the Notes tab. Clears automatically each day. Export to PNG.
@@ -27,7 +30,7 @@ Daily scratch canvas in the Notes tab. Clears automatically each day. Export to 
 Personal Arknights pull tracker: resource counts, per-banner pity, pull logging, and a full operator collection (rarity/class/acquisition flags) with an Add/Owned layout and potential levels.
 
 **Mobile companion**
-Dedicated mobile build at /mobile/ (mobile user-agents are redirected there automatically), matching the desktop visual language: Fraunces title, frosted glass header, same color tokens. It shares the same synced data and the same period logic as desktop. Day and week calendar views, period logging, notes list, and dark/light theme toggle.
+Dedicated mobile build at /mobile/ (mobile user-agents are redirected there automatically), matching the desktop visual language: Fraunces title, frosted glass header, floating tab bar, same color tokens. It shares the same synced data and the same period logic as desktop. Day and week calendar with add/edit/delete events (with start–end times and location) and spend, period logging, a Finance tab for salary/income entry, and editable notes. Installs to the home screen as a PWA and works offline.
 
 **Language**
 EN/ID toggle on all public pages.
@@ -59,7 +62,7 @@ Guided setup page on first visit. Everything editable later in settings.
 
 ## Stack
 
-Vanilla JS (ES Modules) · No build step · Supabase (private backend) · localStorage fallback · SortableJS (drag and drop only)
+Vanilla JS (ES Modules) · No build step · Supabase (private backend) · localStorage fallback · SortableJS (drag and drop only) · Self-hosted fonts (no external requests) · Service worker (offline, cache-first)
 
 ---
 
