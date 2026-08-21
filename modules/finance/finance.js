@@ -184,6 +184,11 @@ function _buildHeader() {
     let y = _year, m = _month + 1; if (m > 11) { m = 0; y++; }
     _year = y; _month = m; _render();
   });
+  const today = document.createElement('button'); today.className = 'cal-today-btn';
+  today.textContent = 'today';
+  today.addEventListener('click', () => {
+    const now = new Date(); _year = now.getFullYear(); _month = now.getMonth(); _render();
+  });
 
   const toggle = document.createElement('div'); toggle.className = 'cal-view-toggle';
   SUB_VIEWS.forEach(({ key, label }) => {
@@ -194,7 +199,7 @@ function _buildHeader() {
     toggle.appendChild(btn);
   });
 
-  hdr.append(prev, lbl, next, toggle);
+  hdr.append(prev, lbl, next, today, toggle);
   return hdr;
 }
 
