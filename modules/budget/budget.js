@@ -281,17 +281,18 @@ function makeCatRow(cat, target, spent) {
   barWrap.appendChild(fill);
   row.append(top, barWrap);
 
-  // Soft take-home % hint (only for categories with a recommended range).
+  // Soft take-home % hint — based on what's actually spent, not the budget.
+  // (Take-home changes month to month, so this recomputes against the current one.)
   const th   = takeHome();
   const reco = BUDGET_RECO[cat.id];
-  if (th > 0 && reco && target > 0) {
-    const pctOfTh = Math.round((target / th) * 100);
-    const high    = pctOfTh > reco.high;
+  if (th > 0 && reco) {
+    const pctSpent = Math.round((spent / th) * 100);
+    const high     = pctSpent > reco.high;
     const hint = document.createElement('div');
     hint.className = 'bud-cat-hint' + (high ? ' high' : '');
     hint.textContent = high
-      ? `${pctOfTh}% of take-home · a bit high, aim ≤ ${reco.high}%`
-      : `${pctOfTh}% of take-home`;
+      ? `${fmt(spent)} spent · ${pctSpent}% of take-home, aim ≤ ${reco.high}%`
+      : `${fmt(spent)} spent · ${pctSpent}% of take-home`;
     row.appendChild(hint);
   }
   return row;
