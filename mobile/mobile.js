@@ -297,6 +297,7 @@ function _showAddEvent(dateStr, existing = null) {
     </div>
     <div class="mob-sheet-body">
       <input id="ms-ev-title" type="text" placeholder="Title" autocomplete="off">
+      <input id="ms-ev-date" type="date">
       <div class="mob-field-row">
         <input id="ms-ev-time" type="time" placeholder="Start">
         <span class="mob-time-sep">–</span>
@@ -307,6 +308,7 @@ function _showAddEvent(dateStr, existing = null) {
       <div class="mob-cat-grid" id="ms-ev-cats"></div>
       <div class="mob-sheet-actions">
         <button class="mob-sheet-save" id="ms-ev-save">${existing ? 'Save' : 'Add'}</button>
+        ${existing ? '<button class="mob-sheet-dup" id="ms-ev-dup">Duplicate</button>' : ''}
         ${existing ? '<button class="mob-sheet-del" id="ms-ev-del">Delete</button>' : ''}
       </div>
     </div>
@@ -315,6 +317,7 @@ function _showAddEvent(dateStr, existing = null) {
   document.body.appendChild(overlay);
 
   sheet.querySelector('#ms-ev-title').value    = existing?.title ?? '';
+  sheet.querySelector('#ms-ev-date').value     = existing?.date ?? dateStr;
   sheet.querySelector('#ms-ev-time').value     = existing?.time ?? existing?.startTime ?? '';
   sheet.querySelector('#ms-ev-time-end').value = existing?.endTime ?? '';
   sheet.querySelector('#ms-ev-link').value     = existing?.link ?? '';
@@ -350,7 +353,8 @@ function _showAddEvent(dateStr, existing = null) {
     const endTime  = sheet.querySelector('#ms-ev-time-end').value;
     const link     = sheet.querySelector('#ms-ev-link').value.trim();
     const location = sheet.querySelector('#ms-ev-location').value.trim();
-    const ev = { ...(existing || {}), id: existing?.id ?? _uid(), date: existing?.date ?? dateStr, title, category: selCat, categoryId: selCat };
+    const date     = sheet.querySelector('#ms-ev-date').value || dateStr;
+    const ev = { ...(existing || {}), id: existing?.id ?? _uid(), date, title, category: selCat, categoryId: selCat };
     delete ev.startTime;                 // drop legacy field
     if (time) ev.time = time; else delete ev.time;
     if (endTime) ev.endTime = endTime; else delete ev.endTime;
@@ -363,6 +367,10 @@ function _showAddEvent(dateStr, existing = null) {
   });
 
   if (existing) {
+    sheet.querySelector('#ms-ev-dup').addEventListener('click', () => {
+      const copy = { ...existing, id: _uid(), date: sheet.querySelector('#ms-ev-date').value || existing.date };
+      saveCal([...(d.calendar?.events || []), copy]);
+    });
     sheet.querySelector('#ms-ev-del').addEventListener('click', () => {
       saveCal((d.calendar?.events || []).filter(e => e.id !== existing.id));
     });
@@ -389,11 +397,13 @@ function _showAddSpend(dateStr, existing = null) {
     </div>
     <div class="mob-sheet-body">
       <input id="ms-sp-amt" type="number" inputmode="numeric" placeholder="Amount (¥)">
+      <input id="ms-sp-date" type="date">
       <div class="mob-cat-grid" id="ms-sp-cats"></div>
       <div class="mob-sub-wrap" id="ms-sp-subs"></div>
       <input id="ms-sp-note" type="text" placeholder="Note (optional)" autocomplete="off">
       <div class="mob-sheet-actions">
         <button class="mob-sheet-save" id="ms-sp-save">${existing ? 'Save' : 'Add'}</button>
+        ${existing ? '<button class="mob-sheet-dup" id="ms-sp-dup">Duplicate</button>' : ''}
         ${existing ? '<button class="mob-sheet-del" id="ms-sp-del">Delete</button>' : ''}
       </div>
     </div>
@@ -402,6 +412,7 @@ function _showAddSpend(dateStr, existing = null) {
   document.body.appendChild(overlay);
 
   sheet.querySelector('#ms-sp-amt').value  = existing?.amount ?? '';
+  sheet.querySelector('#ms-sp-date').value = dateStr;
   sheet.querySelector('#ms-sp-note').value = existing?.note ?? '';
 
   function renderSubs() {
@@ -444,27 +455,42 @@ function _showAddSpend(dateStr, existing = null) {
   sheet.querySelector('.mob-sheet-close').addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
 
-  const saveSpend = entries => {
-    const spendEntries = { ...(d.calendar?.spendEntries || {}) };
-    if (entries.length) spendEntries[dateStr] = entries; else delete spendEntries[dateStr];
+  // Write the whole spend map (entries are keyed by date, so moving/duplicating
+  // across dates means editing two keys). Empty date keys are pruned.
+  const commit = spendEntries => {
+    Object.keys(spendEntries).forEach(k => { if (!spendEntries[k].length) delete spendEntries[k]; });
     const cal = { ...(d.calendar || {}), spendEntries };
     d.calendar = cal; _mobileData = d; save({ calendar: cal });
     close(); _render();
   };
+  const readFields = () => {
+    const amt = parseFloat(sheet.querySelector('#ms-sp-amt').value);
+    if (!amt || isNaN(amt)) { sheet.querySelector('#ms-sp-amt').focus(); return null; }
+    return { categoryId: selCat, subcategory: selSub || '', amount: amt, currency: existing?.currency ?? 'JPY', note: sheet.querySelector('#ms-sp-note').value.trim() };
+  };
 
   sheet.querySelector('#ms-sp-save').addEventListener('click', () => {
-    const amt = parseFloat(sheet.querySelector('#ms-sp-amt').value);
-    if (!amt || isNaN(amt)) { sheet.querySelector('#ms-sp-amt').focus(); return; }
-    const note  = sheet.querySelector('#ms-sp-note').value.trim();
-    const prev  = d.calendar?.spendEntries?.[dateStr] || [];
-    const entry = { ...(existing || {}), id: existing?.id ?? _uid(), categoryId: selCat, subcategory: selSub || '', amount: amt, currency: existing?.currency ?? 'JPY', note };
-    const entries = existing ? prev.map(e => e.id === existing.id ? entry : e) : [...prev, entry];
-    saveSpend(entries);
+    const fields = readFields(); if (!fields) return;
+    const newDate = sheet.querySelector('#ms-sp-date').value || dateStr;
+    const spendEntries = { ...(d.calendar?.spendEntries || {}) };
+    if (existing) spendEntries[dateStr] = (spendEntries[dateStr] || []).filter(e => e.id !== existing.id); // pull from old date
+    const entry = { ...(existing || {}), id: existing?.id ?? _uid(), ...fields };
+    spendEntries[newDate] = [...(spendEntries[newDate] || []), entry];
+    commit(spendEntries);
   });
 
   if (existing) {
+    sheet.querySelector('#ms-sp-dup').addEventListener('click', () => {
+      const fields = readFields(); if (!fields) return;
+      const newDate = sheet.querySelector('#ms-sp-date').value || dateStr;
+      const spendEntries = { ...(d.calendar?.spendEntries || {}) };
+      spendEntries[newDate] = [...(spendEntries[newDate] || []), { id: _uid(), ...fields }]; // original stays
+      commit(spendEntries);
+    });
     sheet.querySelector('#ms-sp-del').addEventListener('click', () => {
-      saveSpend((d.calendar?.spendEntries?.[dateStr] || []).filter(e => e.id !== existing.id));
+      const spendEntries = { ...(d.calendar?.spendEntries || {}) };
+      spendEntries[dateStr] = (spendEntries[dateStr] || []).filter(e => e.id !== existing.id);
+      commit(spendEntries);
     });
   } else {
     setTimeout(() => sheet.querySelector('#ms-sp-amt').focus(), 100);

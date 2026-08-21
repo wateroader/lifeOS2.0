@@ -785,8 +785,18 @@ html, body {
 }
 .mob-sheet-save:hover { opacity: 0.85; }
 
-.mob-sheet-actions { display: flex; gap: var(--s2); }
+.mob-sheet-actions { display: flex; gap: var(--s2); flex-wrap: wrap; }
 .mob-sheet-actions .mob-sheet-save { flex: 1; }
+.mob-sheet-dup {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--s3) var(--s4);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  flex-shrink: 0;
+}
 .mob-sheet-del {
   background: none;
   color: var(--red);
