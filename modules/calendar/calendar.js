@@ -1868,6 +1868,48 @@ function openSpendModal(dateStr, entryId, preselectCatId) {
       render();
     });
     actions.appendChild(delBtn);
+
+    const dupBtn = document.createElement('button');
+    dupBtn.className = 'cal-dup-cancel';
+    dupBtn.textContent = 'Duplicate';
+    dupBtn.addEventListener('click', () => {
+      if (!selectedCat) { catGrid.querySelector('.cal-spend-cat-chip')?.focus(); return; }
+      const amount = parseFloat(amtInput.value);
+      if (isNaN(amount) || amount === 0) { amtInput.focus(); return; }
+      const entry = {
+        categoryId:  selectedCat,
+        subcategory: selectedSub ?? null,
+        note:        selectedNote.trim() || null,
+        amount,
+        currency:    selectedCurrency,
+      };
+      // Swap the actions row for a "copy to next N days" stepper.
+      actions.innerHTML = '';
+      const lead = document.createElement('span');
+      lead.className = 'cal-dup-lead';
+      lead.textContent = 'Copy to next';
+      const num = document.createElement('input');
+      num.type = 'number'; num.min = '1'; num.max = '365'; num.value = '1';
+      num.className = 'cal-dup-num';
+      const unit = document.createElement('span');
+      unit.className = 'cal-dup-lead';
+      const setUnit = () => { unit.textContent = (parseInt(num.value, 10) || 1) === 1 ? 'day' : 'days'; };
+      setUnit();
+      num.addEventListener('input', setUnit);
+      const go = document.createElement('button');
+      go.className = 'cal-save-btn';
+      go.textContent = 'Duplicate';
+      go.addEventListener('click', () => {
+        const n = Math.max(1, Math.min(365, parseInt(num.value, 10) || 1));
+        duplicateSpendSpan(dateStr, entry, n);
+        closeSpendModal();
+        render();
+      });
+      num.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
+      actions.append(lead, num, unit, go);
+      num.focus(); num.select();
+    });
+    actions.appendChild(dupBtn);
   }
 
   const saveBtn = document.createElement('button');
@@ -1966,6 +2008,18 @@ function removeSpendEntry(dateStr, id) {
 }
 
 function spendUid() { return 'sp_' + Math.random().toString(36).slice(2, 9); }
+
+// Duplicate a spend entry forward: N copies on the N days after fromDate.
+function duplicateSpendSpan(fromDate, entry, n) {
+  const all = { ...(calData().spendEntries ?? {}) };
+  const [y, mo, d] = fromDate.split('-').map(Number);
+  const base = new Date(y, mo - 1, d);
+  for (let i = 1; i <= n; i++) {
+    const key = dateStrFromDate(addDays(base, i));
+    all[key] = [...(all[key] ?? []), { ...entry, id: spendUid() }];
+  }
+  _onSave({ calendar: { ...calData(), spendEntries: all } });
+}
 
 function moveSpendEntry(id, fromDate, toDate) {
   if (fromDate === toDate) return;
