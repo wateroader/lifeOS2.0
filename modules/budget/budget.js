@@ -80,18 +80,12 @@ function saveProjectIncome(entries) {
 
 function fmt(n) { return '¥' + Math.round(Math.abs(n)).toLocaleString(); }
 
-// Estimated take-home = this month's base salary × 80% (deductions ~20%).
-// Falls back to the most recent month that has a salary set.
+// Take-home = the salary actually entered for THIS month. No fallback to other
+// months — a month with no salary set (e.g. no income) reads as zero.
 function monthlySalary() {
   const months = _data.finance?.months ?? {};
   const key = `${_year}-${String(_month + 1).padStart(2, '0')}`;
-  const cur = months[key]?.income?.find(r => r.id === 'salary')?.amount;
-  if (cur) return cur;
-  for (const k of Object.keys(months).sort().reverse()) {
-    const s = months[k]?.income?.find(r => r.id === 'salary')?.amount;
-    if (s) return s;
-  }
-  return 0;
+  return months[key]?.income?.find(r => r.id === 'salary')?.amount || 0;
 }
 // The salary entered is already take-home, so use it directly (no gross->net cut).
 function takeHome() { return monthlySalary(); }
