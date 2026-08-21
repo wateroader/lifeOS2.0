@@ -864,11 +864,7 @@ function openEventView(date, evtId) {
   const dupBtn = document.createElement('button');
   dupBtn.className = 'cal-ev-view-edit-btn';
   dupBtn.innerHTML = '<span class="material-symbols-outlined">content_copy</span>Duplicate';
-  dupBtn.addEventListener('click', () => {
-    const copy = { ...evt, id: uid(), createdAt: undefined };
-    saveEvent(copy);
-    openEventView(viewDate, copy.id);   // open the new copy so it's obvious it worked
-  });
+  dupBtn.addEventListener('click', () => openDupPanel(footer, viewDate, evt));
   const delBtn = document.createElement('button');
   delBtn.className = 'cal-ev-view-del-btn';
   delBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>Delete';
@@ -878,6 +874,70 @@ function openEventView(date, evtId) {
 
   _modal.appendChild(card);
   _container.appendChild(_modal);
+}
+
+// Duplicate an event forward: N copies on the N days after its date.
+// Parked events (no date) get N parked copies instead.
+function duplicateEventSpan(evt, n) {
+  const now    = new Date().toISOString();
+  const copies = [];
+  if (evt.date) {
+    const [y, mo, d] = evt.date.split('-').map(Number);
+    const base = new Date(y, mo - 1, d);
+    for (let i = 1; i <= n; i++) {
+      copies.push({ ...evt, id: uid(), date: dateStrFromDate(addDays(base, i)), createdAt: now, updatedAt: undefined });
+    }
+  } else {
+    for (let i = 0; i < n; i++) {
+      copies.push({ ...evt, id: uid(), createdAt: now, updatedAt: undefined });
+    }
+  }
+  _onSave({ calendar: { ...calData(), events: [...events(), ...copies] } });
+  return copies;
+}
+
+// Inline "duplicate N times" stepper, shown in the event-view footer.
+function openDupPanel(footer, viewDate, evt) {
+  footer.innerHTML = '';
+  footer.classList.add('cal-ev-view-footer-dup');
+
+  const lead = document.createElement('span');
+  lead.className = 'cal-dup-lead';
+  lead.textContent = evt.date ? 'Copy to next' : 'Make';
+
+  const num = document.createElement('input');
+  num.type = 'number'; num.min = '1'; num.max = '365'; num.value = '1';
+  num.className = 'cal-dup-num';
+
+  const unit = document.createElement('span');
+  unit.className = 'cal-dup-lead';
+  const setUnit = () => {
+    const one = (parseInt(num.value, 10) || 1) === 1;
+    unit.textContent = evt.date ? (one ? 'day' : 'days') : (one ? 'copy' : 'copies');
+  };
+  setUnit();
+  num.addEventListener('input', setUnit);
+
+  const go = document.createElement('button');
+  go.className = 'cal-ev-view-edit-btn';
+  go.innerHTML = '<span class="material-symbols-outlined">content_copy</span>Duplicate';
+  go.addEventListener('click', () => {
+    const n = Math.max(1, Math.min(365, parseInt(num.value, 10) || 1));
+    duplicateEventSpan(evt, n);
+    openEventView(viewDate, evt.id);   // re-open original; grid now shows the copies
+  });
+
+  const cancel = document.createElement('button');
+  cancel.className = 'cal-dup-cancel';
+  cancel.textContent = 'Cancel';
+  cancel.addEventListener('click', () => openEventView(viewDate, evt.id));
+
+  const controls = document.createElement('div');
+  controls.className = 'cal-dup-controls';
+  controls.append(lead, num, unit);
+  footer.append(controls, go, cancel);
+  num.focus(); num.select();
+  num.addEventListener('keydown', e => { if (e.key === 'Enter') go.click(); });
 }
 
 // ── Day modal (add new event) ───────────────────────────────────────
